@@ -13,37 +13,17 @@ namespace SHA256_T3
         {
             const int BUFFER_SIZE = 1024;
 
-            var video1 = Path.Combine("data", "video_03.mp4");
-            var video2 = Path.Combine("data", "video05.mp4");
-            var videos = new[] { video1, video2 };
+            //var video = Path.Combine("data", "FuncoesResumo - SHA1.mp4");
+            var video = Path.Combine("data", "FuncoesResumo - Hash Functions.mp4");
 
-            // Seleciona o arquivo
-            var video = "";
-            if (args.Length == 0)
-            {
-                Console.WriteLine("Escolha uma opção:");
-                for (int i = 0; i < videos.Length; i++)
-                {
-                    Console.WriteLine($" {i + 1} - {Path.GetFileName(videos[i])}");
-                }
-
-                var idx = int.Parse(Console.ReadLine());
-                video = videos[idx - 1];
-            }
-            else
-            {
-                var idx = int.Parse(args[0]);
-                video = videos[idx - 1];
-            }
-
-
-            // Initialize a SHA256 hash object.
             using (SHA256 mySHA256 = SHA256.Create())
             {
                 //Obtem informações do arquivo
                 FileInfo fInfo = new FileInfo(video);
                 try
                 {
+                    // *** ETAPA 1 - divisão do arquivo em blocos ***
+
                     // Calcula a quantidade de blocos e o tamanho do último bloco
                     var lastBlockLength = fInfo.Length % BUFFER_SIZE;
                     var estimatedBlocks = fInfo.Length / BUFFER_SIZE + (lastBlockLength == 0 ? 0 : 1);
@@ -62,6 +42,9 @@ namespace SHA256_T3
                             stackFileBlocks.Push(buffer);
                         }
                     }
+                    
+                    
+                    // *** ETAPA 2 - cálculo dos hashes ***
 
                     // pilha para guardar os hashes na ordem correta
                     var stackHashes = new Stack<byte[]>((int)estimatedBlocks);
@@ -98,6 +81,9 @@ namespace SHA256_T3
                         lastHash = hash;
                     }
 
+
+                    // *** ETAPA 3 - gerar arquivo texto como saída do algoritmo ***
+
                     var sb = new StringBuilder((int)estimatedBlocks);
                     int i = 0;
                     while (stackHashes.Count > 0)
@@ -106,6 +92,7 @@ namespace SHA256_T3
                         sb.AppendLine($"{i++}:\t {str}");
                     }
 
+                    // resultados gravados na pasta bin\Debug\netcoreapp3.1\output
                     Directory.CreateDirectory("output");
                     var outputFile = Path.Combine("output", Path.GetFileNameWithoutExtension(fInfo.Name) + ".txt");
                     using (var swriter = new StreamWriter(outputFile, false))
